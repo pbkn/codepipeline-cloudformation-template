@@ -122,7 +122,7 @@ Resources:
                   - codestar-connections:List*
                   - codestar-connections:PassConnection
                   - codestar-connections:UseConnection
-                  - iam:PassRole
+                  - iam:*
                 Resource: "*"
 
   CodeBuildProject:

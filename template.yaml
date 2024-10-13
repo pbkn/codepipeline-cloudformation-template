@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ArtifactBucketName:
+    Type: String
+    Default: "codepipeline-artifacts-bucket-pbkn-poc"
+    Description: "The name of the S3 bucket to store CodePipeline artifacts"
+
+  StackName:
+    Type: String
+    Default: "BatchJob-TestJob-CodePipeline-Stack"
+    Description: "The name of the CloudFormation stack to be deployed"
+
+Resources:
+  CodeBuildLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/${CodeBuildProject}-${AWS::AccountId}-${AWS::Region}"
+      RetentionInDays: 7
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucketName
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHubSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: '1'
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                ConnectionArn: "{{resolve:ssm:/codeconnections/github/github-pbkn/arn}}"  # Replace with your GitHub connection ARN
+                FullRepositoryId: "{{resolve:ssm:/codeconnections/github/github-pbkn/owner}}/{{resolve:ssm:/codeconnections/github/github-pbkn/batch-testjob/repo-name}}"  # Replace with your GitHub username/organization and repository name
+                BranchName: "{{resolve:ssm:/codeconnections/github/github-pbkn/batch-testjob/branch-name}}"  # Replace with your preferred branch
+              RunOrder: 1
+
+        - Name: Build
+          Actions:
+            - Name: CodeBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              RunOrder: 1
+
+        - Name: Deploy
+          Actions:
+              - Name: CreateChangeSet
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: CloudFormation
+                  Version: '1'
+                InputArtifacts:
+                  - Name: BuildOutput
+                Configuration:
+                  ActionMode: CREATE_UPDATE
+                  StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
+                  Capabilities: CAPABILITY_IAM
+                  ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"
+                  TemplatePath: "BuildOutput::template.yml"
+                RunOrder: 1
+
+              - Name: ExecuteChangeSet
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: CloudFormation
+                  Version: '1'
+                Configuration:
+                  ActionMode: EXECUTE_CHANGESET
+                  StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
+                  ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"
+                RunOrder: 2
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ codepipeline.amazonaws.com ]
+            Action: [ sts:AssumeRole ]
+      Policies:
+        - PolicyName: CodePipelinePermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - codebuild:*
+                  - cloudformation:*
+                Resource: "*"
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: CodeBuildMaven
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: "buildspec.yml"
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: "aws/codebuild/amazonlinux2-x86_64-standard:corretto11"
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ codebuild.amazonaws.com ]
+            Action: [ sts:AssumeRole ]
+      Policies:
+        - PolicyName: CodeBuildPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - codepipeline:*
+                  - cloudformation:*
+                Resource: "*"

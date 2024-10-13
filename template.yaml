@@ -117,6 +117,7 @@ Resources:
                   - s3:*
                   - codebuild:*
                   - cloudformation:*
+                  - ssm:*
                   - codestar-connections:Get*
                   - codestar-connections:List*
                   - codestar-connections:PassConnection

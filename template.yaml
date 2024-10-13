@@ -92,8 +92,6 @@ Resources:
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/aws-service-role/AWSGitSyncServiceRolePolicy
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -111,6 +109,8 @@ Resources:
                   - s3:*
                   - codebuild:*
                   - cloudformation:*
+                  - codestar-connections:Get*,
+                  - codestar-connections:List*
                 Resource: "*"
 
   CodeBuildProject:

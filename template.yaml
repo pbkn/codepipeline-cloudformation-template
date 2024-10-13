@@ -159,4 +159,5 @@ Resources:
                   - s3:*
                   - codepipeline:*
                   - cloudformation:*
+                  - logs:*
                 Resource: "*"

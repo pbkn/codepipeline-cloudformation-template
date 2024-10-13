@@ -160,4 +160,5 @@ Resources:
                   - codepipeline:*
                   - cloudformation:*
                   - logs:*
+                  - ecr:*
                 Resource: "*"

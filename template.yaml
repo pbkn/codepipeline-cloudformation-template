@@ -37,6 +37,7 @@ Resources:
                 Version: '1'
               OutputArtifacts:
                 - Name: SourceOutput
+              RoleArn: !GetAtt CodePipelineRole.Arn
               Configuration:
                 ConnectionArn: "{{resolve:ssm:/codeconnections/github/github-pbkn/arn}}"  # Replace with your GitHub connection ARN
                 FullRepositoryId: "{{resolve:ssm:/codeconnections/github/github-pbkn/owner}}/{{resolve:ssm:/codeconnections/github/github-pbkn/batch-testjob/repo-name}}"  # Replace with your GitHub username/organization and repository name
@@ -55,6 +56,7 @@ Resources:
                 - Name: SourceOutput
               OutputArtifacts:
                 - Name: BuildOutput
+              RoleArn: !GetAtt CodePipelineRole.Arn
               Configuration:
                 ProjectName: !Ref CodeBuildProject
               RunOrder: 1
@@ -69,10 +71,11 @@ Resources:
                   Version: '1'
                 InputArtifacts:
                   - Name: BuildOutput
+                RoleArn: !GetAtt CodePipelineRole.Arn
                 Configuration:
                   ActionMode: CREATE_UPDATE
                   StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
-                  Capabilities: CAPABILITY_IAM
+                  Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                   ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"
                   TemplatePath: "BuildOutput::template.yml"
                 RunOrder: 1
@@ -83,6 +86,7 @@ Resources:
                   Owner: AWS
                   Provider: CloudFormation
                   Version: '1'
+                RoleArn: !GetAtt CodePipelineRole.Arn
                 Configuration:
                   ActionMode: EXECUTE_CHANGESET
                   StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
@@ -111,6 +115,7 @@ Resources:
                   - cloudformation:*
                   - codestar-connections:Get*,
                   - codestar-connections:List*
+                  - iam:PassRole
                 Resource: "*"
 
   CodeBuildProject:

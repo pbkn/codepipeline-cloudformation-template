@@ -16,7 +16,7 @@ Resources:
   CodeBuildLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/codebuild/${CodeBuildProject}-${AWS::AccountId}-${AWS::Region}"
+      LogGroupName: !Sub "/aws/codebuild/CodeBuildMaven-${AWS::AccountId}-${AWS::Region}"
       RetentionInDays: 7
 
   CodePipeline:
@@ -117,6 +117,10 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: CodeBuildMaven
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Ref CodeBuildLogGroup
       Source:
         Type: CODEPIPELINE
         BuildSpec: "buildspec.yml"

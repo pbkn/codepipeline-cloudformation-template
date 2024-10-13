@@ -72,7 +72,7 @@ Resources:
                 InputArtifacts:
                   - Name: BuildOutput
                 Configuration:
-                  ActionMode: CREATE_UPDATE
+                  ActionMode: CHANGE_SET_REPLACE
                   StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
                   Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                   ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"
@@ -86,10 +86,14 @@ Resources:
                   Owner: AWS
                   Provider: CloudFormation
                   Version: '1'
+                InputArtifacts:
+                  - Name: BuildOutput
                 Configuration:
                   ActionMode: EXECUTE_CHANGESET
                   StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
+                  Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                   ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"
+                  TemplatePath: "BuildOutput::template.yml"
                   RoleArn: !GetAtt CodePipelineRole.Arn
                 RunOrder: 2
 

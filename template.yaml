@@ -123,6 +123,11 @@ Resources:
                   - codestar-connections:PassConnection
                   - codestar-connections:UseConnection
                   - iam:*
+                  - logs:*
+                  - ecr:*
+                  - codepipeline:*
+                  - events:*
+                  - sts:AssumeRole
                 Resource: "*"
 
   CodeBuildProject:

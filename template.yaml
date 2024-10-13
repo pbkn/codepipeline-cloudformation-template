@@ -113,10 +113,10 @@ Resources:
                   - s3:*
                   - codebuild:*
                   - cloudformation:*
-                  - codestar-connections:Get*,
-                  - codestar-connections:List*,
-                  - codestar-connections:PassConnection,
-                  - codestar-connections:UseConnection,
+                  - codestar-connections:Get*
+                  - codestar-connections:List*
+                  - codestar-connections:PassConnection
+                  - codestar-connections:UseConnection
                   - iam:PassRole
                 Resource: "*"
 

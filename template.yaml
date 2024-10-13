@@ -89,7 +89,7 @@ Resources:
                 InputArtifacts:
                   - Name: BuildOutput
                 Configuration:
-                  ActionMode: EXECUTE_CHANGESET
+                  ActionMode: CHANGE_SET_EXECUTE
                   StackName: !Sub "${StackName}-${AWS::AccountId}-${AWS::Region}"
                   Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM
                   ChangeSetName: !Sub "CodePipelineChangeSet-${AWS::AccountId}-${AWS::Region}"

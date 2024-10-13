@@ -125,6 +125,7 @@ Resources:
                   - iam:*
                   - logs:*
                   - ecr:*
+                  - ecs:*
                   - codepipeline:*
                   - events:*
                   - sts:AssumeRole
